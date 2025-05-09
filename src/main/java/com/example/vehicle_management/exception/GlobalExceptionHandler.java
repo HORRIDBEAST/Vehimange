@@ -11,24 +11,21 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
-@ControllerAdvice // Allows handling exceptions across the whole application in one global handling component.
+@ControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Handle specific exceptions: ResourceNotFoundException
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<?> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
         ErrorDetails errorDetails = new ErrorDetails(new Date(), ex.getMessage(), request.getDescription(false));
         return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
     }
 
-    // Handle specific exceptions: DuplicateRegistrationException
     @ExceptionHandler(DuplicateRegistrationException.class)
     public ResponseEntity<?> handleDuplicateRegistrationException(DuplicateRegistrationException ex, WebRequest request) {
         ErrorDetails errorDetails = new ErrorDetails(new Date(), ex.getMessage(), request.getDescription(false));
         return new ResponseEntity<>(errorDetails, HttpStatus.CONFLICT); // 409 Conflict
     }
 
-    // Handle validation errors: MethodArgumentNotValidException (thrown when @Valid fails)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, WebRequest request) {
         Map<String, String> errors = new HashMap<>();
@@ -37,7 +34,6 @@ public class GlobalExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        // You can create a more structured error response object if needed
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("timestamp", new Date());
         errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
@@ -48,12 +44,9 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    // Handle global exceptions: Catch-all for any other unhandled exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGlobalException(Exception ex, WebRequest request) {
         ErrorDetails errorDetails = new ErrorDetails(new Date(), ex.getMessage(), request.getDescription(false));
-        // It's good practice to log the exception here
-        // log.error("Unhandled exception occurred", ex);
         return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
